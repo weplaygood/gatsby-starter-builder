@@ -1,36 +1,46 @@
+// In your gatsby-config.js
 const path = require('path');
-const config = require('./src/config');
 module.exports = {
-  pathPrefix: '/gatsby-starter-builder',
-  siteMetadata: {
-    title: 'Gatsby + Builder.io Starter',
-    description:
-      'This repo contains an example website that is built with Builder.io, and generate with Gatsby'
-  },
   plugins: [
-    'gatsby-plugin-top-layout',
-    {
-      resolve: 'gatsby-plugin-material-ui',
-      // If you want to use styled components you should change the injection order.
-      options: {
-        // stylesProvider: {
-        //   injectFirst: true,
-        // },
-      }
-    },
-    // If you want to use styled components you should add the plugin here.
-    // 'gatsby-plugin-styled-components',
-    'gatsby-plugin-react-helmet',
     {
       resolve: '@builder.io/gatsby',
       options: {
-        publicAPIKey: config.builderAPIKey,
+        // public API Key
+        publicAPIKey: '1272919049fa4cc3a24247fc656ee810',
+        // OPTIONAL
+        // Set this to `true` to rely on our cached content. Default value is `false`, always fetching the newest content from Builder.
+        useCache: false,
+        // OPTIONAL
+        // mapping model names to template files, the plugin will create a page for each entry of the model at its specified url
         templates: {
-          // Render every `landingPage` model as a new page using the
-          // src/templates/LandingPage.jsx template based on the URL provided in Builder.io
-          landingPage: path.resolve('src/templates/LandingPage.jsx')
-        }
-      }
-    }
-  ]
+          // `page` can be any model of choice, camelCased
+          page: path.resolve('templates/my-page.tsx'),
+        },
+        // OPTIONAL
+        mapEntryToContext: async ({ entry, graphql }) => {
+          const result = await graphql('....');
+          return {
+            property: entry.data.property,
+            anotherProperty: entry.data.whatever,
+            dataFromQuery: result.data
+            /* ... */
+          };
+        },
+        // OPTIONAL
+        // to resolve a single entry to multiple, for e.g in localization
+        resolveDynamicEntries: async (entries) => {
+          const entriesToBuild = []
+          for entry of entries {
+            if (entry.data.myprop.isDynamic){
+               entriesToBuild.push(await myEntryResolver(entry))
+            }
+            else {
+               entriesToBuild.push(entry)
+            }
+          }
+          return entriesToBuild;
+        },
+      },
+    },
+  ],
 };
